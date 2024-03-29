@@ -29,3 +29,16 @@ export async function GET(req) {
     return NextResponse.json({ message: "Error", error }, { status: 500 });
   }
 }
+
+export async function DELETE(req) {
+  try {
+   await mongooseConnect();
+   const pId = req.nextUrl.searchParams.get('id');
+   if (pId) {
+    await Product.deleteOne({_id:pId})
+    return NextResponse.json({ message: "Item deleted successfully"}, { status: 200 });
+  } 
+  } catch (error) {
+    return NextResponse.json({ message: "Error", error }, { status: 500 });
+  }
+}
