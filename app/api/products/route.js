@@ -20,8 +20,9 @@ export async function POST(req) {
 export async function GET(req) {
   try {
    await mongooseConnect();
-   if (req.query?.id) {
-    return NextResponse.json(await Product.findOne({_id:req.query.id}));
+   const pId = req.nextUrl.searchParams.get('id');
+   if (pId) {
+    return NextResponse.json(await Product.findOne({_id:pId}));
   } else {
     return NextResponse.json(await Product.find());
   }
@@ -38,6 +39,18 @@ export async function DELETE(req) {
     await Product.deleteOne({_id:pId})
     return NextResponse.json({ message: "Item deleted successfully"}, { status: 200 });
   } 
+  } catch (error) {
+    return NextResponse.json({ message: "Error", error }, { status: 500 });
+  }
+}
+
+export async function PUT(req) {
+  try {
+   await mongooseConnect();
+   const {title,description,price,_id} = await req.json();
+   console.log(title);
+   await Product.updateOne({_id}, {title,description,price});
+   return NextResponse.json(true);
   } catch (error) {
     return NextResponse.json({ message: "Error", error }, { status: 500 });
   }
