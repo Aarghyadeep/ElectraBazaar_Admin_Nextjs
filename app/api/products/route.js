@@ -1,20 +1,67 @@
 import { mongooseConnect } from "@/lib/mongoose";
 import { Product } from "@/models/Product";
 import { NextResponse } from "next/server";
+import { writeFile } from "fs/promises"
+import {v2 as cloudinary} from 'cloudinary';
+          
+cloudinary.config({ 
+  cloud_name: `${process.env.CLOUDINARY_CLOUD_NAME}`, 
+  api_key: `${process.env.CLOUDINARY_API_KEY}`, 
+  api_secret: `${process.env.CLOUDINARY_API_SECRET}` 
+});
 
 export async function POST(req) {
-   try {
     await mongooseConnect();
-    const {title,description,price} = await req.json();
-    console.log(title);
-    const productDoc = await Product.create({
-     title, description, price
-    })
-    await productDoc.save();
-    return NextResponse.json(productDoc);
-   } catch (error) {
-     return NextResponse.json({ message: "Error", error }, { status: 500 });
-   }
+    const data = await req.formData();
+  
+    /* Extract info from the data */
+    const title = data.get("title");
+    const description = data.get("description");
+    const price = data.get("price");
+  
+    /* Get an array of uploaded photos */
+    const photos = data.getAll("photoPath");
+  
+    /* Process and store each photo  */
+    const photoPath = []; // Declare outside the loop
+  
+    // Define a helper function to upload each photo
+    const uploadPhoto = async (photo) => {
+      // Read the photo as an ArrayBuffer
+      const bytes = await photo.arrayBuffer();
+      // Convert it to a Buffer
+      const buffer = Buffer.from(bytes);
+  
+      // Upload image to Cloudinary
+      const result = await new Promise((resolve, reject) => {
+        cloudinary.uploader.upload_stream({
+          folder: 'EBproducts'
+        }, async (error, result) => {
+          if (error) {
+            console.error('Error uploading image to Cloudinary:', error);
+            reject(error);
+          } else {
+            console.log('Image uploaded to Cloudinary');
+            // Store the public URL of the uploaded image
+            photoPath.push(result.url);
+            resolve();
+          }
+        }).end(buffer);
+      });
+  
+      return result;
+    };
+  
+    // Upload each photo sequentially
+    for (const photo of photos) {
+      await uploadPhoto(photo);
+    }
+  
+    const newProduct = await Product.create({
+      title, description, price, photoPath
+    });
+    await newProduct.save();
+    return NextResponse.json(newProduct);
 }
 
 export async function GET(req) {
@@ -44,14 +91,75 @@ export async function DELETE(req) {
   }
 }
 
-export async function PUT(req) {
-  try {
+export async function PATCH(req) {
+  
    await mongooseConnect();
-   const {title,description,price,_id} = await req.json();
-   console.log(title);
-   await Product.updateOne({_id}, {title,description,price});
-   return NextResponse.json(true);
-  } catch (error) {
-    return NextResponse.json({ message: "Error", error }, { status: 500 });
-  }
+    const data = await req.formData();
+    
+    /* Extract info from the data */
+    const title = data.get("title")
+    const description = data.get("description")
+    const price = data.get("price")
+    
+    /* Get an array of uploaded photos */
+    const photos = data.getAll("photoPath")
+
+    const photoPath = []
+
+    // Define a helper function to upload each photo
+    const uploadPhoto = async (photo) => {
+      // Read the photo as an ArrayBuffer
+      const bytes = await photo.arrayBuffer();
+      // Convert it to a Buffer
+      const buffer = Buffer.from(bytes);
+  
+      // Upload image to Cloudinary
+      const result = await new Promise((resolve, reject) => {
+        cloudinary.uploader.upload_stream({
+          folder: 'EBproducts'
+        }, async (error, result) => {
+          if (error) {
+            console.error('Error uploading image to Cloudinary:', error);
+            reject(error);
+          } else {
+            console.log('Image uploaded to Cloudinary');
+            // Store the public URL of the uploaded image
+            photoPath.push(result.url);
+            resolve();
+          }
+        }).end(buffer);
+      });
+  
+      return result;
+    };
+  
+    // Upload each photo sequentially
+    for (const photo of photos) {
+      if (typeof photo === 'string') {
+        // If photo is already a URL, push it directly to photoPath
+        photoPath.push(photo);
+      } else {
+        // Otherwise, it's a new photo, so upload it to Cloudinary
+        await uploadPhoto(photo);
+      }
+    }
+
+    const pId = req.nextUrl.searchParams.get('id');
+
+    const existingProduct = await Product.findById(pId)
+
+    if (!existingProduct) {
+      return NextResponse.json("Product Not Found", { status: 404 });
+    }
+
+     /* Update the Work with the new data */
+     existingProduct.title = title
+     existingProduct.description = description
+     existingProduct.price = price
+     existingProduct.photoPath = photoPath
+ 
+     await existingProduct.save()
+ 
+   return NextResponse.json("Successfully updated the Product", { status: 200 });
+  
 }

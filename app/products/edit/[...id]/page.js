@@ -1,6 +1,5 @@
-import EditProduct from '@/components/EditProduct'
 import Layout from '@/components/PageLayout'
-import ProductForm from '@/components/ProductForm'
+import EditProduct from '@/components/productPages/EditProduct'
 import React from 'react'
 
 export default function EditPage() {

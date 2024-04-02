@@ -30,11 +30,11 @@ export default async function Layout({ children }) {
   }
   
   return (
-    <div className='h-screen w-screen bg-[#1E1E1E] flex flex-col'>
+    <div className='h-screen w-full bg-[#1E1E1E] flex flex-col'>
       <Header />
-      <div className='flex h-full'>
+      <div className='flex h-full overflow-hidden'>
       <SideNav />
-      <div className='p-4 h-full w-full'>
+      <div className='p-4 w-full overflow-y-auto bg-[#1E1E1E]'>
        {children}
       </div>
       </div>

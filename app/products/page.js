@@ -7,8 +7,8 @@ export default function Products() {
   return (
     <Layout>
       <div className='text-white flex items-center justify-center'>
-       <ProductTable />
-      </div>
+      <ProductTable />
+    </div>
     </Layout>
   )
 }

@@ -18,7 +18,7 @@ export default function SideNav() {
   const pathname = usePathname();
 
   return (
-    <aside className="p-4 bg-[#161311] text-gray-500 font-semibold hidden md:block">
+    <aside className="p-4 bg-[#161311] text-gray-500 font-semibold">
       <nav className="space-y-4 mt-5">
         <Link href={"/"} className={pathname === '/' ? activeLink : inactiveLink}>
         <MdDashboard className={pathname === '/' ? activeIcon : inactiveIcon} />

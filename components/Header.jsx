@@ -12,7 +12,7 @@ export default function Header() {
   const { data: session } = useSession();
 
   return (
-    <div className="top-0 bg-[#161311] w-full p-2 flex text-white justify-between border-b border-gray-600">
+    <div className="top-0 bg-[#161311] sticky w-full p-2 flex text-white justify-between border-b border-gray-600">
                 {/* logo */}
       <Link href={"/"} className='md:text-2xl text-xl font-bold mt-2 flex justify-center items-center font-serif
       hover:opacity-90'>
